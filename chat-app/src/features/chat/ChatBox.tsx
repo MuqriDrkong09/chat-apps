@@ -56,24 +56,26 @@ const ChatBox: React.FC = () => {
     }
 
     return (
-        <div className={"p-4 max-w-md mx-auto"}>
+        <div className={"p-4 max-w-md w-full mx-auto sm:max-w-full"}>
             <div className={"bg-gray-100 p-4 rounded h-96 overflow-y-auto"}>
                 {messages.map((msg) => (
                     <div key={msg.id} className={`my-2 ${msg.sender === 'me' ? 'text-right' : 'text-left'}`}>
-                        <span className={"inline-block bg-blue-200 px-3 py-1 rounded"}>
+                        <span className={`inline-block bg-blue-200 px-3 py-1 rounded max-w-[80%] break-words whitespace-pre-wrap
+                          ${msg.sender === 'me' ? 'bg-blue-500 text-white' : `bg-gray-300 text-black`}`}
+                        >
                             {msg.text}
                         </span>
                     </div>
                 ))}
                 <div ref={bottomRef} />
             </div>
-            <div className={"flex mt-4"}>
+            <div className={"flex flex-col sm:flex-row gap-2 mt-4"}>
                 <input
                     type={'text'}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                    className={"flex-grow border px-2 py-1 rounded-1"}
+                    className={"w-full border px-2 py-2 rounded sm:rounded-1 sm:rounded-none focus:outline-none focus:ring-2 focus:ring-blue-400"}
                 />
                 <button
                     onClick={handleSend}
