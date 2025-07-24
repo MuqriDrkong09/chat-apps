@@ -56,7 +56,7 @@ const ChatBox: React.FC = () => {
     }
 
     return (
-        <div className={"p-4 max-w-md w-full mx-auto sm:max-w-full"}>
+        <div className={"w-full max-w-sm mx-auto p-4"}>
             <div className={"bg-gray-100 p-4 rounded h-96 overflow-y-auto"}>
                 {messages.map((msg) => (
                     <div key={msg.id} className={`my-2 ${msg.sender === 'me' ? 'text-right' : 'text-left'}`}>
