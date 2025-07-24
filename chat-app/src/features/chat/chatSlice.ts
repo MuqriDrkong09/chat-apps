@@ -1,10 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type {PayloadAction} from "@reduxjs/toolkit";
-
-interface Message {
-    text: string;
-    timestamp: string;
-}
+import type {Message} from "../../types.ts";
 
 interface ChatState {
     messages: Message[];
@@ -26,4 +22,3 @@ export const chatSlice = createSlice({
 
 export const { sendMessage } = chatSlice.actions;
 export default chatSlice.reducer;
-export type { Message };

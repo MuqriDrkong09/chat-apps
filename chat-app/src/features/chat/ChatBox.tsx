@@ -1,51 +1,84 @@
 import React, { useState, useRef, useEffect} from "react";
-import {useDispatch, useSelector} from "react-redux";
-import type { RootState, AppDispatch} from "../../app/store.ts";
-import { sendMessage} from "./chatSlice.ts";
-import type {Message} from "./chatSlice.ts";
+import {useAppDispatch, useAppSelector} from "../../app/hooks.ts";
+import { sendMessage } from "./chatSlice.ts";
+import { v4 as uuidv4 } from 'uuid';
+import type { Message } from "../../types.ts";
 
 const ChatBox: React.FC = () => {
     const [input, setInput] = useState('');
-    const dispatch = useDispatch<AppDispatch>();
-    const messages = useSelector((state: RootState) => state.chat.messages)
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messages = useAppSelector((state) => state.chat.messages)
+    const dispatch = useAppDispatch();
+    const bottomRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const saved = localStorage.getItem("chatMessages");
+        if (saved) {
+            const parsed: Message[] = JSON.parse(saved);
+            parsed.forEach((msg) => dispatch(sendMessage(msg)));
+        }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem("chatMessages", JSON.stringify(messages));
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, []);
 
     const handleSend = () => {
+        if (!input.trim()) return;
         const newMessage: Message = {
+            id: uuidv4(),
             text: input,
             timestamp: new Date().toISOString(),
+            sender: 'me',
         };
         dispatch(sendMessage(newMessage));
         setInput('');
+
+        setTimeout(() => {
+            const botReply: Message = {
+                id: uuidv4(),
+                text: generateBotReply(input),
+                timestamp: new Date().toISOString(),
+                sender: 'bot',
+            }
+            dispatch(sendMessage(botReply));
+        }, 1000)
     }
 
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+    const generateBotReply = (userInput: string) => {
+        if (userInput.toLowerCase().includes('hello')) {
+            return 'Hello! How can I assist you today?';
+        }
+        if (userInput.toLowerCase().includes('help')) {
+            return 'Sure! What do you need help with?';
+        }
+        return 'I am a bot, and I’m here to help! 😊';
+    }
 
     return (
-        <div className="max-w-md mx-auto p-4 border rounded shadow space-y-4">
-            <h1 className={"text-xl font-bold text-center"}>Simple Chat</h1>
-            <div className={"h-64 overflow-y-auto border p-2 bg-gray-100 rounded"}>
-                {messages.map((msg, index) => (
-                    <div key={index} className="mb-2">
-            <span className="text-sm text-gray-600">
-              {new Date(msg.timestamp).toLocaleTimeString()}:
-            </span>
-                        <p>{msg.text}</p>
+        <div className={"p-4 max-w-md mx-auto"}>
+            <div className={"bg-gray-100 p-4 rounded h-96 overflow-y-auto"}>
+                {messages.map((msg) => (
+                    <div key={msg.id} className={`my-2 ${msg.sender === 'me' ? 'text-right' : 'text-left'}`}>
+                        <span className={"inline-block bg-blue-200 px-3 py-1 rounded"}>
+                            {msg.text}
+                        </span>
                     </div>
                 ))}
-                <div ref={messagesEndRef}></div>
+                <div ref={bottomRef} />
             </div>
-            <div className={"flex gap-2"}>
+            <div className={"flex mt-4"}>
                 <input
-                type="text"
-                className={"flex-1 border p-2 rounded"}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                    type={'text'}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                    className={"flex-grow border px-2 py-1 rounded-1"}
                 />
-                <button onClick={handleSend} className={"bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"}>
+                <button
+                    onClick={handleSend}
+                    className="bg-blue-500 text-white px-4 py-1 rounded-r hover:bg-blue-600"
+                >
                     Send
                 </button>
             </div>
